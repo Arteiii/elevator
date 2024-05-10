@@ -1,6 +1,6 @@
 [package]
 name = "elevator"
-description = "run programs with elevated privileges on both Windows and Unix"
+description = "run programs with elevated privileges on Windows"
 version = "0.1.0"
 edition = "2021"
 
@@ -36,7 +36,7 @@ path = "bin/main.rs"
 
 [dependencies]
 libc = "0.2.154"
-winapi = { version = "0.3.9", features = ["shellapi", "winuser", "minwindef"] }
+winapi = { version = "0.3.9", features = ["shellapi", "winuser", "minwindef", "errhandlingapi", "winbase"] }
 
 [build-dependencies]
 winres = "0.1.12"
