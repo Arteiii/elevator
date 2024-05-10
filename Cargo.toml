@@ -12,7 +12,7 @@ build = "build.rs"
 # TODO!:
 categories = ["command-line-interface"]
 repository = "https://github.com/Arteiii/elevator"
-keywords = ["windows", "unix"]
+keywords = ["windows"]
 homepage = "https://arteiii.github.io"
 
 
@@ -35,12 +35,11 @@ name = "elevator"
 path = "bin/main.rs"
 
 [dependencies]
-libc = "0.2.154"
 winapi = { version = "0.3.9", features = ["shellapi", "winuser", "minwindef", "errhandlingapi", "winbase"] }
 
 [build-dependencies]
 winres = "0.1.12"
 
 [package.metadata.winres]
-OriginalFilename = "ELEVATOR.EXE"
+OriginalFilename = "elevator.exe"
 LegalCopyright = "Copyright Arteii © 2024"
