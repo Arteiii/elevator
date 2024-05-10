@@ -11,9 +11,8 @@
 //! }
 //! ```
 
-use std::ffi::CString;
+use std::ffi::OsStr;
 use std::io;
-use std::os::unix::ffi::OsStrExt;
 use std::process::Command;
 
 /// Run a program with elevated privileges.
@@ -42,10 +41,6 @@ use std::process::Command;
 /// }
 /// ```
 pub fn run_elevated(program_path: &str, args: &[&str]) -> io::Result<()> {
-    // Convert program path and arguments to CString
-    let program_cstr = CString::new(program_path)?;
-    let args_cstr: Vec<CString> = args.iter().map(|arg| CString::new(*arg).unwrap()).collect();
-
     // Set the effective user ID to root
     unsafe {
         if libc::setuid(0) != 0 {
@@ -53,14 +48,8 @@ pub fn run_elevated(program_path: &str, args: &[&str]) -> io::Result<()> {
         }
 
         // Execute the program with elevated privileges
-        Command::new(program_cstr.as_ptr())
-            .args(
-                args_cstr
-                    .iter()
-                    .map(|arg| arg.as_ptr())
-                    .collect::<Vec<_>>()
-                    .as_slice(),
-            )
+        Command::new(program_path)
+            .args(args.iter().map(|arg| OsStr::new(*arg)))
             .spawn()?;
     }
 
