@@ -47,7 +47,6 @@ pub fn run_elevated(program_path: &str, args: &[&str]) -> Result<(), String> {
     // Start the specified program with the provided arguments
     let result = Command::new(program_path).args(args).spawn();
 
-    // Handle any errors that may occur while starting the program
     match result {
         Ok(_) => Ok(()),
         Err(err) => Err(err.to_string()),
@@ -57,8 +56,5 @@ pub fn run_elevated(program_path: &str, args: &[&str]) -> Result<(), String> {
 // Function to check if the process is running with elevated privileges (sudo)
 pub fn is_running_as_sudo() -> bool {
     // Check if the environment variable "SUDO_USER" is set
-    match std::env::var("SUDO_USER") {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    std::env::var("SUDO_USER").is_ok()
 }
