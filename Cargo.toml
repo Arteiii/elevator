@@ -21,6 +21,7 @@ include = [
     "Cargo.lock",
     "LICENSE-MIT",
     "src/**/*",
+    "bin/**/*",
     "build.rs",
     "manifest.xml",
 ]
