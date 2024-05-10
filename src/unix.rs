@@ -52,7 +52,7 @@ pub fn run_elevated(program_path: &str, args: &[&str]) -> Result<(), String> {
     // Handle any errors that may occur while starting the program
     match result {
         Ok(_) => Ok(()),
-        Err(err) => Err(err),
+        Err(err) => Err(err.to_string()),
     }
 }
 
