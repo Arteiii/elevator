@@ -11,8 +11,6 @@
 //! }
 //! ```
 
-use std::ffi::OsStr;
-use std::io;
 use std::process::Command;
 
 /// Run a program with elevated privileges.
@@ -40,18 +38,27 @@ use std::process::Command;
 ///     eprintln!("Error: {}", err);
 /// }
 /// ```
-pub fn run_elevated(program_path: &str, args: &[&str]) -> io::Result<()> {
-    // Set the effective user ID to root
-    unsafe {
-        if libc::setuid(0) != 0 {
-            return Err(io::Error::last_os_error());
-        }
-
-        // Execute the program with elevated privileges
-        Command::new(program_path)
-            .args(args.iter().map(|arg| OsStr::new(*arg)))
-            .spawn()?;
+pub fn run_elevated(program_path: &str, args: &[&str]) -> Result<(), String> {
+    // Check if the process is running with elevated privileges
+    if !is_running_as_sudo() {
+        return Err("Error: This program must be run with elevated privileges (sudo).".to_string());
     }
 
-    Ok(())
+    // Start the specified program with the provided arguments
+    let result = Command::new(program_path).args(args).spawn();
+
+    // Handle any errors that may occur while starting the program
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+// Function to check if the process is running with elevated privileges (sudo)
+pub fn is_running_as_sudo() -> bool {
+    // Check if the environment variable "SUDO_USER" is set
+    match std::env::var("SUDO_USER") {
+        Ok(_) => true,
+        Err(_) => false,
+    }
 }
