@@ -1,5 +1,5 @@
 [package]
-name = "av_exclusion"
+name = "elevator"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
@@ -16,26 +16,28 @@ homepage = "https://arteiii.github.io"
 
 include = [
     "Cargo.toml",
+    "Cargo.lock",
     "LICENSE-MIT",
     "src/**/*",
+    "build.rs",
+    "manifest.xml",
 ]
 
 [lib]
-name = "av_exclusion_lib"
+name = "elevator_lib"
 path = "src/lib.rs"
 
 [[bin]]
-name = "av_exclusion"
-path = "src/main.rs"
+name = "elevator"
+path = "bin/main.rs"
 
 [dependencies]
-winapi = { version = "0.3.9", features = ["winbase", "processthreadsapi", "securitybaseapi", "winnt", "errhandlingapi"] }
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+libc = "0.2.154"
+winapi = { version = "0.3.9", features = ["shellapi", "winuser", "minwindef"] }
 
-[target.'cfg(windows)'.build-dependencies]
-winres = "0.1"
+[build-dependencies]
+winres = "0.1.12"
 
 [package.metadata.winres]
-OriginalFilename = "av_exclusion.exe"
+OriginalFilename = "ELEVATOR.EXE"
 LegalCopyright = "Copyright Arteii © 2024"
