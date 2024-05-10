@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_windows:
-    name: Compile Examples for Windows
+    name: Compile for Windows
     runs-on: windows-latest
 
     steps:
@@ -21,19 +21,19 @@ jobs:
           toolchain: stable
           target: x86_64-pc-windows-msvc
 
-      - name: Compile Examples for Windows
-        run: cargo build --examples --release
+      - name: Compile for Windows
+        run: cargo build --release
 
       - name: Upload to Release
         uses: actions/upload-artifact@v2
         with:
-          name: examples_windows-artifact
+          name: windows-artifact
           path: |
             target/release/elevator.exe
 
 
   build_unix:
-    name: Compile Examples for Unix
+    name: Compile for Unix
     runs-on: ubuntu-latest
 
     steps:
@@ -47,13 +47,13 @@ jobs:
           toolchain: stable
           target: x86_64-unknown-linux-gnu
 
-      - name: Compile Examples for Unix
-        run: cargo build --examples --release
+      - name: Compile for Unix
+        run: cargo build --release
 
       - name: Upload to Release
         uses: actions/upload-artifact@v2
         with:
-          name: examples_unix-artifact
+          name: unix-artifact
           path: |
             target/release/elevator
 
@@ -75,14 +75,14 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: examples_windows-artifact
-          path: examples/windows
+          name: windows-artifact
+          path: release/windows
 
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: examples_unix-artifact
-          path: examples/unix
+          name: unix-artifact
+          path: release/unix
 
       - name: Create Release
         id: create_release
@@ -91,7 +91,7 @@ jobs:
           tag_name: ${{ env.TAG }}
           name: "Release ${{ env.TAG }}"
           files: |
-            examples/unix/*
-            examples/windows/*
+            release/unix/*
+            release/windows/*
           token: ${{ secrets.GITHUB_TOKEN }}
           append_body: true

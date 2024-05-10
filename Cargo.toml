@@ -1,7 +1,9 @@
 [package]
 name = "elevator"
+description = "run programs with elevated privileges on both Windows and Unix"
 version = "0.1.0"
 edition = "2021"
+
 license = "MIT"
 readme = "README.md"
 authors = ["Arteii <ben.arteii@proton.me>"]
@@ -9,8 +11,8 @@ build = "build.rs"
 
 # TODO!:
 categories = ["command-line-interface"]
-repository = "https://github.com/Arteiii/av_exclusion"
-keywords = ["windows", "av"]
+repository = "https://github.com/Arteiii/elevator"
+keywords = ["windows", "unix"]
 homepage = "https://arteiii.github.io"
 
 
