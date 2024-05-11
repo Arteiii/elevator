@@ -11,7 +11,8 @@
 //! }
 //! ```
 
-use std::process::Command;
+use std::ffi::OsStr;
+use std::process::{Command, ExitStatus};
 
 /// Run a program with elevated privileges.
 ///
@@ -22,7 +23,7 @@ use std::process::Command;
 /// # Arguments
 ///
 /// * `program_path` - The path to the program to execute.
-/// * `args` - A slice of arguments to pass to the program.
+/// * `args` - A single str of arguments to pass to the program.
 ///
 /// # Errors
 ///
@@ -34,11 +35,15 @@ use std::process::Command;
 /// use elevator_lib::run_elevated;
 ///
 /// // Run a program with elevated privileges
-/// if let Err(err) = run_elevated("/usr/bin/some_program", &["arg1", "arg2"]) {
+/// if let Err(err) = run_elevated("/usr/bin/some_program", "arg1 arg2") {
 ///     eprintln!("Error: {}", err);
 /// }
 /// ```
-pub fn run_elevated(program_path: &str, args: &[&str]) -> Result<(), String> {
+#[inline]
+pub fn run_elevated<S: AsRef<OsStr>, T: AsRef<OsStr>>(
+    program_path: S,
+    args: T,
+) -> std::io::Result<ExitStatus> {
     // Check if the process is running with elevated privileges
     if !is_running_as_sudo() {
         return Err("Error: This program must be run with elevated privileges (sudo).".to_string());

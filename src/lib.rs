@@ -17,7 +17,6 @@
 
 // windows:
 #[cfg(windows)]
-#[allow(internal_features)]
 mod windows;
 
 #[cfg(windows)]

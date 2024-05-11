@@ -11,15 +11,16 @@
 //! }
 //! ```
 //!
-use std::ffi::OsStr;
-use std::os::windows::ffi::OsStrExt;
-use std::ptr;
 
-use winapi::shared::minwindef::{DWORD, HINSTANCE};
-use winapi::um::errhandlingapi::GetLastError;
-use winapi::um::shellapi::{ShellExecuteW, SEE_MASK_NOASYNC};
-use winapi::um::winbase::FormatMessageW;
-use winapi::um::winuser::SW_SHOWNORMAL;
+use std::ffi::OsStr;
+use std::os::windows::process::ExitStatusExt;
+use std::process::ExitStatus;
+
+use windows::core::{w, HSTRING, PCWSTR};
+use windows::Win32::System::Threading::{GetExitCodeProcess, WaitForSingleObject, INFINITE};
+use windows::Win32::UI::Shell::{
+    ShellExecuteExW, SEE_MASK_NOASYNC, SEE_MASK_NOCLOSEPROCESS, SHELLEXECUTEINFOW,
+};
 
 /// Run a program with elevated privileges on Windows.
 ///
@@ -33,7 +34,9 @@ use winapi::um::winuser::SW_SHOWNORMAL;
 ///
 /// # Errors
 ///
-/// Returns a `String` with an error message if running the program with elevated privileges fails.
+/// Returns an `std::io::Result`
+/// containing the exit status of the process if successful, or an `std::io::Error`
+/// if running the program with elevated privileges fails.
 ///
 /// # Examples
 ///
@@ -41,61 +44,37 @@ use winapi::um::winuser::SW_SHOWNORMAL;
 /// use elevator_lib::run_elevated;
 ///
 /// // Run a program with elevated privileges
-/// if let Err(err) = run_elevated("C:\\Windows\\System32\\notepad.exe", &["C:\\example.txt"]) {
+/// if let Err(err) = run_elevated(r#"C:\Windows\System32\notepad.exe"#, r#"C:\example.txt"#) {
 ///     eprintln!("Error: {}", err);
 /// }
 /// ```
-pub fn run_elevated(program_path: &str, args: &[&str]) -> Result<(), String> {
+///
+#[inline]
+pub fn run_elevated<S: AsRef<OsStr>, T: AsRef<OsStr>>(
+    program_path: S,
+    args: T,
+) -> std::io::Result<ExitStatus> {
+    let mut code = 1;
+    let file = HSTRING::from(program_path.as_ref());
+    let par = HSTRING::from(args.as_ref());
+
+    let mut sei = SHELLEXECUTEINFOW {
+        cbSize: std::mem::size_of::<SHELLEXECUTEINFOW>() as u32,
+        fMask: SEE_MASK_NOASYNC | SEE_MASK_NOCLOSEPROCESS,
+        lpVerb: w!("runas"),
+        lpFile: PCWSTR(file.as_ptr()),
+        lpParameters: PCWSTR(par.as_ptr()),
+        nShow: 1,
+        ..Default::default()
+    };
     unsafe {
-        let verb = OsStr::new("runas")
-            .encode_wide()
-            .chain(Some(0))
-            .collect::<Vec<_>>();
-        let program = OsStr::new(program_path)
-            .encode_wide()
-            .chain(Some(0))
-            .collect::<Vec<_>>();
-        let parameters = args
-            .iter()
-            .flat_map(|arg| {
-                let arg_wide: Vec<u16> = OsStr::new(arg).encode_wide().chain(Some(0)).collect();
-                arg_wide
-            })
-            .collect::<Vec<_>>();
-
-        let result = ShellExecuteW(
-            ptr::null_mut(),
-            verb.as_ptr(),
-            program.as_ptr(),
-            parameters.as_ptr() as *const _,
-            ptr::null_mut(),
-            SW_SHOWNORMAL | SEE_MASK_NOASYNC as i32,
-        );
-
-        if result > 32 as HINSTANCE {
-            Ok(())
-        } else {
-            let error_code = GetLastError();
-            let mut buffer = [0; 256];
-            let len = FormatMessageW(
-                winapi::um::winbase::FORMAT_MESSAGE_FROM_SYSTEM,
-                ptr::null_mut(),
-                error_code,
-                0,
-                buffer.as_mut_ptr(),
-                buffer.len() as DWORD,
-                ptr::null_mut(),
-            );
-
-            if len != 0 {
-                let message = String::from_utf16_lossy(&buffer[..len as usize]);
-                Err(format!(
-                    "Failed to run {} as administrator: {}",
-                    program_path, message
-                ))
-            } else {
-                Err(format!("Failed to run {} as administrator.", program_path))
-            }
-        }
-    }
+        ShellExecuteExW(&mut sei)?;
+        let process = { sei.hProcess };
+        if process.is_invalid() {
+            return Err(std::io::Error::last_os_error());
+        };
+        WaitForSingleObject(process, INFINITE);
+        GetExitCodeProcess(process, &mut code)?;
+    };
+    Ok(ExitStatus::from_raw(code))
 }
