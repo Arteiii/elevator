@@ -1,5 +1,6 @@
 use elevator_lib::run_elevated;
-use std::env;
+use std::io::Write;
+use std::{env, io};
 
 fn main() {
     // Get the command-line arguments
@@ -7,19 +8,30 @@ fn main() {
 
     // Ensure that at least one argument is provided (program path)
     if args.len() < 2 {
-        eprintln!("Usage: {} <program_path> [args...]", args[0]);
-        std::process::exit(1);
+        println!("Usage: {} <program_path> [args...]", args[0]);
+
+        exit();
     }
 
     // Extract the program path and arguments
     let program_path = &args[1];
-    let program_args: Vec<&str> = args
-        .get(2..)
-        .map_or_else(Vec::new, |a| a.iter().map(|arg| arg.as_str()).collect());
+    let program_args = &if args.len() > 2 {
+        args[2..].join(" ")
+    } else {
+        String::new()
+    };
 
     // Require admin privileges
-    if let Err(err) = run_elevated(program_path, &program_args) {
-        eprintln!("Error: {}", err);
-        std::process::exit(1);
+    if let Err(err) = run_elevated(program_path, program_args) {
+        println!("Error: {}", err);
+        exit();
     }
+}
+
+fn exit() {
+    let _ = io::stdout().flush();
+    println!("Press Enter to exit...");
+    let mut input = String::new();
+    let _ = io::stdin().read_line(&mut input); // Wait for Enter key press
+    std::process::exit(1);
 }

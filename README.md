@@ -7,17 +7,17 @@ This library provides functions to run programs with elevated privileges on Wind
 To use this library in your Rust project, add it to your Cargo.toml:
 
 ```shell
-cargo add elevator_lib
+cargo add elevator
 ```
 
 Then you can use it in your Rust code:
 
-```shell
+```rust
 use elevator_lib::run_elevated;
 
 // Example: Run a program with elevated privileges
 fn main() {
-    if let Err(err) = run_elevated("C:\\Windows\\System32\\notepad.exe", &["C:\\example.txt"]) {
+    if let Err(err) = run_elevated(r#"C:\Windows\System32\notepad.exe"#, r#"C:\example.txt"#) {
       eprintln!("Error: {}", err);
     }
 }
