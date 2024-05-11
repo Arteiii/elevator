@@ -15,7 +15,7 @@ fn main() {
 
     // Extract the program path and arguments
     let program_path = &args[1];
-    let program_args = if args.len() > 2 {
+    let program_args = &if args.len() > 2 {
         args[2..].join(" ")
     } else {
         String::new()
